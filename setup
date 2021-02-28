@@ -1,11 +1,31 @@
-#!/bin/bash
-set -ex
+#!/bin/bash -i
+set -euo pipefail
 
 if [[ $(hostname) == "void" ]]; then
 	echo "Welcome to the void!"
 
 	source_dir=void-linux/
+	home=/home/raindev
+
+	echo "Syncing the repositories and upgrading the system"
+	xbps-install --sync --update
+	echo "Installing packages"
 	xargs <$source_dir/packages xbps-install --yes
+
+	if [ ! -e "$home/.ssh/id_ed25519" ]; then
+		echo "Generating SSH keys"
+		su raindev -c "ssh-keygen -t ed25519"
+		eval "$(su raindev -c 'ssh-agent -s')"
+		su raindev -c ssh-add
+		echo "Copying the public SSH key"
+		xclip -selection clipboard < "$home/.ssh/id_ed25519.pub"
+		echo "Add the key to GitHub"
+		su raindev -c "xdg-open https://github.com/settings/ssh/new"
+		read -r
+		echo "Add the key to GitLab"
+		su raindev -c "xdg-open https://gitlab.com/-/profile/keys"
+	fi
+
 else
-	echo "System not recognized or not supported"
+	echo "Unrecognized or unsupported system"
 fi
