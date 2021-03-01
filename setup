@@ -1,5 +1,5 @@
 #!/bin/bash -i
-set -euo pipefail
+set -exo pipefail
 
 if [[ $(hostname) == "void" ]]; then
 	echo "Welcome to the void!"
@@ -25,6 +25,20 @@ if [[ $(hostname) == "void" ]]; then
 		echo "Add the key to GitLab"
 		su raindev -c "xdg-open https://gitlab.com/-/profile/keys"
 	fi
+
+	if [ -z "$SSH_AUTH_SOCK" ]; then
+		eval "$(su raindev -c 'ssh-agent -s')"
+		su raindev -c ssh-add
+	fi
+
+	echo "Setting up dotfiles"
+	if [ ! -e "$home/code/dotfiles" ]; then
+		su raindev -c "git clone git@github.com:raindev/dotfiles.git \
+			'$home/code/dotfiles'"
+	fi
+	cd /home/raindev/code/dotfiles/
+	su raindev -c make all
+	cd -
 
 else
 	echo "Unrecognized or unsupported system"
