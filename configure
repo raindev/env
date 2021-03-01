@@ -40,6 +40,12 @@ if [[ $(hostname) == "void" ]]; then
 	su raindev -c make all
 	cd -
 
+	echo "Setting up scripts"
+	if [ ! -e "$home/code/scripts" ]; then
+		su raindev -c "git clone git@github.com:raindev/scripts.git \
+			'$home/code/scripts'"
+	fi
+
 else
 	echo "Unrecognized or unsupported system"
 fi
