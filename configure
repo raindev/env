@@ -46,6 +46,14 @@ if [[ $(hostname) == "void" ]]; then
 			'$home/code/scripts'"
 	fi
 
+	echo "Creating symlinks"
+	[ -e "$home/notes" ] || \
+		su raindev -c "ln --symbolic '$home/Dropbox/notes' '$home/notes'"
+	[ -e "$home/org" ] || \
+		su raindev -c "ln --symbolic '$home/notes/org' '$home/org'"
+	[ -e "$home/cs" ] || \
+		su raindev -c "ln --symbolic '$home/notes/cheatsheets' '$home/cs'"
+
 else
 	echo "Unrecognized or unsupported system"
 fi
