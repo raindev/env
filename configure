@@ -1,5 +1,5 @@
 #!/bin/bash -i
-set -exo pipefail
+set -eo pipefail
 
 if [[ $(hostname) == "void" ]]; then
 	echo "Welcome to the void!"
@@ -36,7 +36,12 @@ if [[ $(hostname) == "void" ]]; then
 		su raindev -c "git clone git@github.com:raindev/dotfiles.git \
 			'$home/code/dotfiles'"
 	fi
-	cd /home/raindev/code/dotfiles/
+	cd "$home/code/dotfiles/"
+	git stash
+	git switch master
+	git pull --ff-only
+	git switch -
+	git stash show && git stash pop
 	su raindev -c make all
 	cd -
 
@@ -45,6 +50,13 @@ if [[ $(hostname) == "void" ]]; then
 		su raindev -c "git clone git@github.com:raindev/scripts.git \
 			'$home/code/scripts'"
 	fi
+	cd "$home/code/scripts/"
+	git stash
+	git switch master
+	git pull --ff-only
+	git switch -
+	git stash show && git stash pop
+	cd -
 
 	echo "Creating symlinks"
 	[ -e "$home/notes" ] || \
