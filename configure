@@ -60,6 +60,15 @@ if [[ $(hostname) == "void" ]]; then
 	git stash show && git stash pop
 	cd -
 
+	if ! su raindev -c "gpg2 --list-key andrew@raindev.io"; then
+		echo -e "\nSetting up GPG"
+		zfs mount -l data/gpg
+		su raindev -c "GPG_TTY=$(tty) gpg2 --import" < /data/gpg/andrew.pub.gpg
+		su raindev -c "GPG_TTY=$(tty) gpg2 --import" < /data/gpg/andrew.sec.gpg
+		su raindev -c "gpg2 --import-ownertrust" < /data/gpg/ownertrust.gpg
+		zfs umount data/gpg
+	fi
+
 	echo -e "\nCreating symlinks"
 	[ -e "$home/notes" ] || \
 		su raindev -c "ln --symbolic '$home/Dropbox/notes' '$home/notes'"
