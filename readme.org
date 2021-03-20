@@ -1,0 +1,18 @@
+* Environment configuration & maintenance scripts
+
+The goal of the project is twofold: to minimize the work needed to
+set-up a new working environment from scratch and to automate the
+routine maintenance.  The idea is to be able to run [[https://security.stackexchange.com/questions/213401/is-curl-something-sudo-bash-a-reasonably-safe-installation-method][=curl
+https://raindev.io/setup.sh | sudo sh=]] on a newly installed OS and
+have everything set-up accordingly to my preferences.  Afterwards it
+will be possible to run =sudo configure= to incorporate configuration
+changes and do system maintenance.
+
+There are three main components:
+- [[file:bootstrap][a bootstrapping script]] that downloads the project and launches the
+  configuration script. It's expected to be changed relatively
+  infrequently and is hosted at my website as =setup.sh= for
+  convenience.
+- [[file:configure][a configuration script]] that determines what configuration needs to
+  be applies to the given system
+- directories with machine specific configuration files and packages
