@@ -4,61 +4,15 @@ set -eo pipefail
 if [[ $(hostname) == "void" ]]; then
 	echo -e "\nWelcome to the void!"
 
-	source_dir=void-linux/
-	home=/home/raindev
+	source_dir=void-linux
+	copy="xclip -selection clipboard"
+	open=xdg-open
 
 	echo -e "\nSyncing the repositories and upgrading the system"
 	xbps-install --sync --update
 	echo -e "\nInstalling packages"
 	xargs <$source_dir/packages xbps-install --yes
 
-	if [ ! -e "$home/.ssh/id_ed25519" ]; then
-		echo -e "\nGenerating SSH keys"
-		su raindev -c "ssh-keygen -t ed25519"
-		eval "$(su raindev -c 'ssh-agent -s')"
-		su raindev -c ssh-add
-		echo -e "\nCopying the public SSH key"
-		xclip -selection clipboard < "$home/.ssh/id_ed25519.pub"
-		echo "Add the key to GitHub"
-		read -r
-		su raindev -c "xdg-open https://github.com/settings/ssh/new"
-		echo "Add the key to GitLab"
-		read -r
-		su raindev -c "xdg-open https://gitlab.com/-/profile/keys"
-	fi
-
-	if [ -z "$SSH_AUTH_SOCK" ]; then
-		echo -e "\nStarting SSH agent"
-		eval "$(su raindev -c 'ssh-agent -s')"
-		su raindev -c ssh-add
-	fi
-
-	echo -e "\nSetting up dotfiles"
-	if [ ! -e "$home/code/dotfiles" ]; then
-		su raindev -c "git clone git@github.com:raindev/dotfiles.git \
-			'$home/code/dotfiles'"
-	fi
-	cd "$home/code/dotfiles/"
-	git stash
-	git switch master
-	git pull --ff-only
-	git switch -
-	git stash show && git stash pop
-	su raindev -c make all
-	cd - > /dev/null
-
-	echo -e "\nSetting up scripts"
-	if [ ! -e "$home/code/scripts" ]; then
-		su raindev -c "git clone git@github.com:raindev/scripts.git \
-			'$home/code/scripts'"
-	fi
-	cd "$home/code/scripts/"
-	git stash
-	git switch master
-	git pull --ff-only
-	git switch -
-	git stash show && git stash pop
-	cd -
 
 	if ! su raindev -c "gpg2 --list-key andrew@raindev.io > /dev/null"; then
 		echo -e "\nSetting up GPG"
@@ -69,10 +23,10 @@ if [[ $(hostname) == "void" ]]; then
 		zfs umount data/gpg
 	fi
 
-	if [ ! -e "$home/.password-store" ]; then
+	if [ ! -e "$HOME/.password-store" ]; then
 		echo -e "\nSetting up pass"
 		su raindev -c "git clone git@gitlab.com:raindev/passwords.git\
-			'$home/.password-store'"
+			'$HOME/.password-store'"
 		su raindev -c "pass git init"
 	fi
 	echo -e "\nUpdating password store"
@@ -80,16 +34,76 @@ if [[ $(hostname) == "void" ]]; then
 	su raindev -c "pass git push"
 
 	echo -e "\nCreating symlinks"
-	[ -e "$home/notes" ] || \
-		su raindev -c "ln --symbolic '$home/Dropbox/notes' '$home/notes'"
-	[ -e "$home/org" ] || \
-		su raindev -c "ln --symbolic '$home/notes/org' '$home/org'"
-	[ -e "$home/cs" ] || \
-		su raindev -c "ln --symbolic '$home/notes/cheatsheets' '$home/cs'"
+	[ -e "$HOME/notes" ] || \
+		su raindev -c "ln --symbolic '$HOME/Dropbox/notes' '$HOME/notes'"
+	[ -e "$HOME/org" ] || \
+		su raindev -c "ln --symbolic '$HOME/notes/org' '$HOME/org'"
+	[ -e "$HOME/cs" ] || \
+		su raindev -c "ln --symbolic '$HOME/notes/cheatsheets' '$HOME/cs'"
 
+elif [[ "$OSTYPE" == darwin* ]]; then
+	echo -e "\nThinking differently"
+
+	source_dir=mac
+	copy=pbcopy
+	open=open
+
+	echo -e "\nUpgrading packages"
+	brew upgrade
+	echo -e "\nInstalling packages"
+	brew bundle --file=mac/Brewfile
 else
 	echo "Unrecognized or unsupported system"
 	exit 1
 fi
+
+ssh_key="$HOME/.ssh/id_ed25519"
+if [ ! -e "$ssh_key" ]; then
+	echo -e "\nGenerating SSH keys"
+	su raindev -c "ssh-keygen -t ed25519 -f $ssh_key"
+	eval "$(su raindev -c 'ssh-agent -s')"
+	su raindev -c ssh-add
+	echo -e "\nCopying the public SSH key"
+	"$copy" < "$ssh_key.pub"
+	echo "Add the key to GitHub"
+	read -r
+	su raindev -c "$open https://github.com/settings/ssh/new"
+	echo "Add the key to GitLab"
+	read -r
+	su raindev -c "$open https://gitlab.com/-/profile/keys"
+fi
+
+if [ -z "$SSH_AUTH_SOCK" ]; then
+	echo -e "\nStarting SSH agent"
+	eval "$(su raindev -c 'ssh-agent -s')"
+	su raindev -c ssh-add
+fi
+
+echo -e "\nSetting up dotfiles"
+if [ ! -e "$HOME/code/dotfiles" ]; then
+	su raindev -c "git clone git@github.com:raindev/dotfiles.git \
+		'$HOME/code/dotfiles'"
+fi
+cd "$HOME/code/dotfiles/"
+git stash
+git switch master
+git pull --ff-only
+git switch -
+git stash show && git stash pop
+su raindev -c make all
+cd - > /dev/null
+
+echo -e "\nSetting up scripts"
+if [ ! -e "$HOME/code/scripts" ]; then
+	su raindev -c "git clone git@github.com:raindev/scripts.git \
+		'$HOME/code/scripts'"
+fi
+cd "$HOME/code/scripts/"
+git stash
+git switch master
+git pull --ff-only
+git switch -
+git stash show && git stash pop
+cd -
 
 echo -e "\nAll done. Enjoy your $(date +%A)!"
