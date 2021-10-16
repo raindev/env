@@ -48,6 +48,8 @@ elif [[ "$OSTYPE" == darwin* ]]; then
 	copy=pbcopy
 	open=open
 
+	echo -e "\nInstalling updates"
+	sudo softwareupdate --install --recommended
 	echo -e "\nUpgrading packages"
 	brew upgrade
 	echo -e "\nInstalling packages"
@@ -86,9 +88,7 @@ if [ ! -e "$HOME/code/dotfiles" ]; then
 fi
 cd "$HOME/code/dotfiles/"
 git stash
-git switch master
 git pull --ff-only
-git switch -
 git stash show && git stash pop
 su raindev -c make all
 cd - > /dev/null
@@ -100,9 +100,7 @@ if [ ! -e "$HOME/code/scripts" ]; then
 fi
 cd "$HOME/code/scripts/"
 git stash
-git switch master
 git pull --ff-only
-git switch -
 git stash show && git stash pop
 cd -
 
