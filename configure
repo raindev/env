@@ -40,7 +40,10 @@ if [[ $(hostname) == "void" ]]; then
 		su raindev -c "ln --symbolic '$HOME/notes/org' '$HOME/org'"
 	[ -e "$HOME/cs" ] || \
 		su raindev -c "ln --symbolic '$HOME/notes/cheatsheets' '$HOME/cs'"
-
+elif [[ "$OSTYPE" == linux* ]]; then
+	echo -e "Configuring Linux"
+	copy=wl-copy
+	open=xdg-open
 elif [[ "$OSTYPE" == darwin* ]]; then
 	echo -e "\nThinking differently"
 
@@ -77,26 +80,26 @@ fi
 
 if [ -z "$SSH_AUTH_SOCK" ]; then
 	echo -e "\nStarting SSH agent"
-	eval "$(su raindev -c 'ssh-agent -s')"
-	su raindev -c ssh-add
+	eval "$(ssh-agent -s)"
+	ssh-add
 fi
 
 echo -e "\nSetting up dotfiles"
 if [ ! -e "$HOME/code/dotfiles" ]; then
-	su raindev -c "git clone git@github.com:raindev/dotfiles.git \
-		'$HOME/code/dotfiles'"
+	git clone git@github.com:raindev/dotfiles.git \
+		"$HOME/code/dotfiles"
 fi
 cd "$HOME/code/dotfiles/"
 git stash
 git pull --ff-only
 git stash show && git stash pop
-su raindev -c make all
+make all
 cd - > /dev/null
 
 echo -e "\nSetting up scripts"
 if [ ! -e "$HOME/code/scripts" ]; then
-	su raindev -c "git clone git@github.com:raindev/scripts.git \
-		'$HOME/code/scripts'"
+	git clone git@github.com:raindev/scripts.git \
+		"$HOME/code/scripts"
 fi
 cd "$HOME/code/scripts/"
 git stash
