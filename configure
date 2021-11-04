@@ -1,5 +1,5 @@
 #!/bin/bash -i
-set -eo pipefail
+set -xeo pipefail
 
 if [[ $(hostname) == "void" ]]; then
 	echo -e "\nWelcome to the void!"
@@ -23,12 +23,6 @@ if [[ $(hostname) == "void" ]]; then
 		zfs umount data/gpg
 	fi
 
-	if [ ! -e "$HOME/.password-store" ]; then
-		echo -e "\nSetting up pass"
-		su raindev -c "git clone git@gitlab.com:raindev/passwords.git\
-			'$HOME/.password-store'"
-		su raindev -c "pass git init"
-	fi
 	echo -e "\nUpdating password store"
 	su raindev -c "pass git pull --rebase"
 	su raindev -c "pass git push"
@@ -106,5 +100,12 @@ git stash
 git pull --ff-only
 git stash show && git stash pop
 cd -
+
+if [ ! -e "$HOME/.password-store" ]; then
+	echo -e "\nSetting up pass"
+	git clone git@gitlab.com:raindev/passwords.git\
+		"$HOME/.password-store"
+	pass git init
+fi
 
 echo -e "\nAll done. Enjoy your $(date +%A)!"
