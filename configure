@@ -2,33 +2,21 @@
 set -eo pipefail
 
 if [[ $(hostname) == "void" ]]; then
-	echo -e "\nWelcome to the void!"
-
-	source_dir=void-linux
-	copy="xclip -selection clipboard"
-	open=xdg-open
+	echo -e "Welcome to the void!"
 
 	echo -e "\nSyncing the repositories and upgrading the system"
 	xbps-install --sync --update
 	echo -e "\nInstalling packages"
 	xargs <$source_dir/packages xbps-install --yes
+fi
 
-
-	echo -e "\nCreating symlinks"
-	[ -e "$HOME/notes" ] || \
-		su raindev -c "ln --symbolic '$HOME/Dropbox/notes' '$HOME/notes'"
-	[ -e "$HOME/org" ] || \
-		su raindev -c "ln --symbolic '$HOME/notes/org' '$HOME/org'"
-	[ -e "$HOME/cs" ] || \
-		su raindev -c "ln --symbolic '$HOME/notes/cheatsheets' '$HOME/cs'"
-elif [[ "$OSTYPE" == linux* ]]; then
+if [[ "$OSTYPE" == linux* ]]; then
 	echo -e "Configuring Linux"
 	copy=wl-copy
 	open=xdg-open
 elif [[ "$OSTYPE" == darwin* ]]; then
 	echo -e "\nThinking differently"
 
-	source_dir=mac
 	copy=pbcopy
 	open=open
 
@@ -107,5 +95,13 @@ fi
 echo -e "\nUpdating password store"
 pass git pull --rebase
 pass git push
+
+echo -e "\nEnsuring symlinks exist"
+[ -e "$HOME/notes" ] || \
+	ln --symbolic "$HOME/Sync/notes" "$HOME/notes"
+[ -e "$HOME/org" ] || \
+	ln --symbolic "$HOME/notes/org" "$HOME/org"
+[ -e "$HOME/cs" ] || \
+	ln --symbolic "$HOME/notes/cheatsheets" "$HOME/cs"
 
 echo -e "\nAll done. Enjoy your $(date +%A)!"
