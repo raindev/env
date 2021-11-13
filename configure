@@ -7,12 +7,12 @@ if [[ $(hostname) == "void" ]]; then
 	echo -e "\nSyncing the repositories and upgrading the system"
 	xbps-install --sync --update
 	echo -e "\nInstalling packages"
-	xargs <$source_dir/packages xbps-install --yes
+	xargs < void-linux/packages xbps-install --yes
 fi
 
 if [[ "$OSTYPE" == linux* ]]; then
 	echo -e "Configuring Linux"
-	copy=wl-copy
+	copy="xclip -sel clip"
 	open=xdg-open
 elif [[ "$OSTYPE" == darwin* ]]; then
 	echo -e "\nThinking differently"
