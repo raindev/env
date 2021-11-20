@@ -83,7 +83,7 @@ if ! gpg --list-key andrew@raindev.io > /dev/null; then
 	echo "Fetch the public key"
 	gpg --edit-card
 	echo "Set key trust level"
-	gpg --edit-key
+	gpg --edit-key andrew@raindev.io
 fi
 
 if [ ! -e "$HOME/.password-store" ]; then
