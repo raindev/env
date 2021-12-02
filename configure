@@ -22,10 +22,17 @@ elif [[ "$OSTYPE" == darwin* ]]; then
 
 	echo -e "\nInstalling updates"
 	sudo softwareupdate --install --recommended
+
+	if ! command -v brew > /dev/null ; then
+		echo -e "\nInstalling Homebrew"
+		bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+		eval "$(/opt/homebrew/bin/brew shellenv)"
+	fi
+
 	echo -e "\nUpgrading packages"
-	brew upgrade
+	arch -arm64 brew upgrade
 	echo -e "\nInstalling packages"
-	brew bundle --file=mac/Brewfile
+	arch -arm64 brew bundle --no-lock --file=mac/Brewfile
 else
 	echo "Unrecognized or unsupported system"
 	exit 1
@@ -98,10 +105,10 @@ pass git push
 
 echo -e "\nEnsuring symlinks exist"
 [ -e "$HOME/notes" ] || \
-	ln --symbolic "$HOME/Sync/notes" "$HOME/notes"
+	ln -s "$HOME/Sync/notes" "$HOME/notes"
 [ -e "$HOME/org" ] || \
-	ln --symbolic "$HOME/notes/org" "$HOME/org"
+	ln -s "$HOME/notes/org" "$HOME/org"
 [ -e "$HOME/cs" ] || \
-	ln --symbolic "$HOME/notes/cheatsheets" "$HOME/cs"
+	ln -s "$HOME/notes/cheatsheets" "$HOME/cs"
 
 echo -e "\nAll done. Enjoy your $(date +%A)!"
