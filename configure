@@ -32,7 +32,7 @@ elif [[ "$OSTYPE" == darwin* ]]; then
 	echo -e "\nUpgrading packages"
 	arch -arm64 brew upgrade
 	echo -e "\nInstalling packages"
-	arch -arm64 brew bundle --no-lock --file=mac/Brewfile
+	arch -arm64 brew bundle --no-lock --file=~/code/env/mac/Brewfile
 else
 	echo "Unrecognized or unsupported system"
 	exit 1
