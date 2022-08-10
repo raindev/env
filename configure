@@ -15,7 +15,7 @@ if [[ "$OSTYPE" == linux* ]]; then
 	copy="xclip -sel clip"
 	open=xdg-open
 elif [[ "$OSTYPE" == darwin* ]]; then
-	echo -e "\nThinking differently"
+	echo -e " Thinking differently"
 
 	copy=pbcopy
 	open=open
@@ -60,28 +60,29 @@ if [ -z "$SSH_AUTH_SOCK" ]; then
 	ssh-add
 fi
 
+update_repo () {
+	if ! git diff-index --quiet @; then
+		git stash
+		git pull --ff-only
+		git stash pop
+	else
+		git pull --ff-only
+	fi
+}
+
 echo -e "\nSetting up dotfiles"
 if [ ! -e "$HOME/code/dotfiles" ]; then
 	git clone git@github.com:raindev/dotfiles.git \
 		"$HOME/code/dotfiles"
 fi
-cd "$HOME/code/dotfiles/"
-git stash
-git pull --ff-only
-git stash show && git stash pop
-make all
-cd - > /dev/null
+(cd "$HOME/code/dotfiles/" && update_repo && make all)
 
 echo -e "\nSetting up scripts"
 if [ ! -e "$HOME/code/scripts" ]; then
 	git clone git@github.com:raindev/scripts.git \
 		"$HOME/code/scripts"
 fi
-cd "$HOME/code/scripts/"
-git stash
-git pull --ff-only
-git stash show && git stash pop
-cd -
+(cd "$HOME/code/scripts/" && update_repo)
 
 if ! gpg --list-key andrew@raindev.io > /dev/null; then
 	echo -e "\nSetting up GPG"
