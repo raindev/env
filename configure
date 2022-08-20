@@ -76,6 +76,7 @@ if [ ! -e "$HOME/code/dotfiles" ]; then
 		"$HOME/code/dotfiles"
 fi
 (cd "$HOME/code/dotfiles/" && update_repo && make all)
+nvim -c ':PlugUpgrade' -c ':PlugUpdate' -c ':quitall'
 
 echo -e "\nSetting up scripts"
 if [ ! -e "$HOME/code/scripts" ]; then
