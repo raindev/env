@@ -21,26 +21,26 @@ update_repo () {
 
 pushd "$HOME/code/env/" > /dev/null
 if update_repo; then
-	echo -e '\nRestarting updated script\n'
+	echo -e 'Restarting updated script\n'
 	exec "$HOME/code/env/configure"
 fi
 popd > /dev/null
 
-if [[ $(hostname) == "void" ]]; then
-	echo "Welcome to the void!"
+if [[ $(hostname) == 'void' ]]; then
+	echo 'Welcome to the void!'
 
-	echo -e "\nSyncing the repositories and upgrading the system"
+	echo '>syncing the repositories and upgrading the system'
 	xbps-install --sync --update
-	echo -e "\nInstalling packages"
+	echo '>installing packages'
 	xargs < void-linux/packages xbps-install --yes
 fi
 
 if [[ "$OSTYPE" == linux* ]]; then
-	echo "Configuring Linux"
-	copy="xclip -sel clip"
+	echo 'Configuring Linux'
+	copy='xclip -sel clip'
 	open=xdg-open
 elif [[ "$OSTYPE" == darwin* ]]; then
-	echo " Thinking differently"
+	echo ' Thinking differently'
 
 	copy=pbcopy
 	open=open
@@ -49,43 +49,43 @@ elif [[ "$OSTYPE" == darwin* ]]; then
 	sudo softwareupdate --install --recommended
 
 	if ! command -v brew > /dev/null ; then
-		echo -e "\nInstalling Homebrew"
+		echo '>installing Homebrew'
 		bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 		eval "$(/opt/homebrew/bin/brew shellenv)"
 	fi
 
-	echo -e "\nUpgrading packages"
+	echo '>upgrading packages'
 	arch -arm64 brew upgrade
-	echo -e "\nInstalling packages"
+	echo '>installing packages'
 	arch -arm64 brew bundle --no-lock --file=~/code/env/mac/Brewfile
 else
-	echo "Unrecognized or unsupported system"
+	echo 'Unrecognized or unsupported system'
 	exit 1
 fi
 
 ssh_key="$HOME/.ssh/id_ed25519"
 if [ ! -e "$ssh_key" ]; then
-	echo -e "\nGenerating SSH keys"
+	echo '>generating SSH keys'
 	ssh-keygen -t ed25519 -f "$ssh_key"
 	eval "$(ssh-agent -s)"
 	ssh-add
-	echo -e "\nCopying the public SSH key"
+	echo '>copying the public SSH key'
 	$copy < "$ssh_key.pub"
-	echo "Add the key to GitHub"
+	echo 'Add the key to GitHub'
 	read -r
 	$open https://github.com/settings/ssh/new
-	echo "Add the key to GitLab"
+	echo 'Add the key to GitLab'
 	read -r
 	$open https://gitlab.com/-/profile/keys
 fi
 
 if [ -z "$SSH_AUTH_SOCK" ]; then
-	echo -e "\nStarting SSH agent"
+	echo '>starting SSH agent'
 	eval "$(ssh-agent -s)"
 	ssh-add
 fi
 
-echo -e "\nSetting up dotfiles"
+echo '>setting up dotfiles'
 if [ ! -e "$HOME/code/dotfiles" ]; then
 	git clone git@github.com:raindev/dotfiles.git \
 		"$HOME/code/dotfiles"
@@ -97,7 +97,7 @@ fi
 popd > /dev/null
 nvim -c ':PlugUpgrade' -c ':PlugUpdate' -c ':quitall'
 
-echo -e "\nSetting up scripts"
+echo '>setting up scripts'
 if [ ! -e "$HOME/code/scripts" ]; then
 	git clone git@github.com:raindev/scripts.git \
 		"$HOME/code/scripts"
@@ -105,26 +105,26 @@ fi
 (cd "$HOME/code/scripts/" && (update_repo || true))
 
 if ! gpg --list-key andrew@raindev.io > /dev/null; then
-	echo -e "\nSetting up GPG"
-	echo "Insert the smartcard"
+	echo '>setting up GPG'
+	echo 'Insert the smartcard'
 	read -r
-	echo "Fetch the public key"
+	echo 'Fetch the public key'
 	gpg --edit-card
-	echo "Set key trust level"
+	echo 'Set key trust level'
 	gpg --edit-key andrew@raindev.io
 fi
 
 if [ ! -e "$HOME/.password-store" ]; then
-	echo -e "\nSetting up pass"
+	echo '>setting up pass'
 	git clone git@github.com:raindev/passwords.git\
 		"$HOME/.password-store"
 	pass git init
 fi
-echo -e "\nUpdating password store"
+echo '>updating password store'
 pass git pull --rebase --quiet
 pass git push --quiet
 
-echo -e "\nEnsuring symlinks exist"
+echo '>ensuring symlinks exist'
 [ -e "$HOME/notes" ] || \
 	ln -s "$HOME/Sync/notes" "$HOME/notes"
 [ -e "$HOME/org" ] || \
