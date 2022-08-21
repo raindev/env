@@ -1,5 +1,5 @@
 #!/bin/bash -i
-set -eo pipefail
+set -euo pipefail
 
 # returns 1 if the repository is already up to date, 0 otherwise
 update_repo () {
