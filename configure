@@ -19,7 +19,8 @@ update_repo () {
 	fi
 }
 
-(cd "$HOME/code/env/" && update_repo && exec "$HOME/code/env/configure" || true)
+(cd "$HOME/code/env/" && update_repo && echo 'Restarting updated script' \
+	&& exec "$HOME/code/env/configure" || true)
 
 if [[ $(hostname) == "void" ]]; then
 	echo -e "Welcome to the void!"
