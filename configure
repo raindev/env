@@ -5,11 +5,11 @@ set -euo pipefail
 update_repo () {
 	current_commit=$(git rev-parse @)
 	if ! git diff-index --quiet @; then
-		git stash
-		git pull --ff-only
-		git stash pop
+		git stash --quiet
+		git pull --ff-only --quiet
+		git stash pop --quiet
 	else
-		git pull --ff-only
+		git pull --ff-only --quiet
 	fi
 	new_commit=$(git rev-parse @)
 	if [ "$current_commit" = "$new_commit" ]; then
@@ -121,8 +121,8 @@ if [ ! -e "$HOME/.password-store" ]; then
 	pass git init
 fi
 echo -e "\nUpdating password store"
-pass git pull --rebase
-pass git push
+pass git pull --rebase --quiet
+pass git push --quiet
 
 echo -e "\nEnsuring symlinks exist"
 [ -e "$HOME/notes" ] || \
