@@ -1,7 +1,7 @@
 #!/bin/bash -i
 set -euo pipefail
 
-# returns 1 if the repository is already up to date, 0 otherwise
+# returns 0 if the repository has been updated, 1 otherwise
 update_repo () {
 	current_commit=$(git rev-parse @)
 	if ! git diff-index --quiet @; then
@@ -19,14 +19,15 @@ update_repo () {
 	fi
 }
 
-repo_updated=$(cd "$HOME/code/env/" && update_repo)
-if [ "$repo_updated" ]; then
+pushd "$HOME/code/env/" > /dev/null
+if update_repo; then
 	echo -e '\nRestarting updated script\n'
 	exec "$HOME/code/env/configure"
 fi
+popd > /dev/null
 
 if [[ $(hostname) == "void" ]]; then
-	echo -e "Welcome to the void!"
+	echo "Welcome to the void!"
 
 	echo -e "\nSyncing the repositories and upgrading the system"
 	xbps-install --sync --update
@@ -35,11 +36,11 @@ if [[ $(hostname) == "void" ]]; then
 fi
 
 if [[ "$OSTYPE" == linux* ]]; then
-	echo -e "Configuring Linux"
+	echo "Configuring Linux"
 	copy="xclip -sel clip"
 	open=xdg-open
 elif [[ "$OSTYPE" == darwin* ]]; then
-	echo -e " Thinking differently"
+	echo " Thinking differently"
 
 	copy=pbcopy
 	open=open
@@ -89,7 +90,11 @@ if [ ! -e "$HOME/code/dotfiles" ]; then
 	git clone git@github.com:raindev/dotfiles.git \
 		"$HOME/code/dotfiles"
 fi
-(cd "$HOME/code/dotfiles/" && update_repo && make all || true)
+pushd "$HOME/code/dotfiles/" > /dev/null
+if update_repo; then
+	make all
+fi
+popd > /dev/null
 nvim -c ':PlugUpgrade' -c ':PlugUpdate' -c ':quitall'
 
 echo -e "\nSetting up scripts"
@@ -97,7 +102,7 @@ if [ ! -e "$HOME/code/scripts" ]; then
 	git clone git@github.com:raindev/scripts.git \
 		"$HOME/code/scripts"
 fi
-(cd "$HOME/code/scripts/" && update_repo || true)
+(cd "$HOME/code/scripts/" && (update_repo || true))
 
 if ! gpg --list-key andrew@raindev.io > /dev/null; then
 	echo -e "\nSetting up GPG"
