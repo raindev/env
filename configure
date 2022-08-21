@@ -1,6 +1,26 @@
 #!/bin/bash -i
 set -eo pipefail
 
+# returns 1 if the repository is already up to date, 0 otherwise
+update_repo () {
+	current_commit=$(git rev-parse @)
+	if ! git diff-index --quiet @; then
+		git stash
+		git pull --ff-only
+		git stash pop
+	else
+		git pull --ff-only
+	fi
+	new_commit=$(git rev-parse @)
+	if [ "$current_commit" = "$new_commit" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+(cd "$HOME/code/env/" && update_repo && exec "$HOME/code/env/configure" || true)
+
 if [[ $(hostname) == "void" ]]; then
 	echo -e "Welcome to the void!"
 
@@ -60,22 +80,12 @@ if [ -z "$SSH_AUTH_SOCK" ]; then
 	ssh-add
 fi
 
-update_repo () {
-	if ! git diff-index --quiet @; then
-		git stash
-		git pull --ff-only
-		git stash pop
-	else
-		git pull --ff-only
-	fi
-}
-
 echo -e "\nSetting up dotfiles"
 if [ ! -e "$HOME/code/dotfiles" ]; then
 	git clone git@github.com:raindev/dotfiles.git \
 		"$HOME/code/dotfiles"
 fi
-(cd "$HOME/code/dotfiles/" && update_repo && make all)
+(cd "$HOME/code/dotfiles/" && update_repo && make all || true)
 nvim -c ':PlugUpgrade' -c ':PlugUpdate' -c ':quitall'
 
 echo -e "\nSetting up scripts"
@@ -83,7 +93,7 @@ if [ ! -e "$HOME/code/scripts" ]; then
 	git clone git@github.com:raindev/scripts.git \
 		"$HOME/code/scripts"
 fi
-(cd "$HOME/code/scripts/" && update_repo)
+(cd "$HOME/code/scripts/" && update_repo || true)
 
 if ! gpg --list-key andrew@raindev.io > /dev/null; then
 	echo -e "\nSetting up GPG"
