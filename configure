@@ -95,7 +95,7 @@ if update_repo; then
 	make all
 fi
 popd > /dev/null
-nvim -c ':PlugUpgrade' -c ':PlugUpdate' -c ':quitall'
+nvim --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
 
 echo '>setting up scripts'
 if [ ! -e "$HOME/code/scripts" ]; then
