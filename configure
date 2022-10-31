@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/usr/bin/env -S bash -i
 set -euo pipefail
 
 # returns 0 if the repository has been updated, 1 otherwise
@@ -99,6 +99,7 @@ echo '>setting up dotfiles'
 if [ ! -e "$HOME/code/dotfiles" ]; then
 	git clone git@github.com:raindev/dotfiles.git \
 		"$HOME/code/dotfiles"
+	(cd "$HOME/code/dotfiles"; make all)
 fi
 pushd "$HOME/code/dotfiles/" > /dev/null
 if update_repo; then
@@ -135,8 +136,6 @@ pass git pull --rebase --quiet
 pass git push --quiet
 
 echo '>ensuring symlinks exist'
-[ -e "$HOME/notes" ] || \
-	ln -s "$HOME/Sync/notes" "$HOME/notes"
 [ -e "$HOME/org" ] || \
 	ln -s "$HOME/notes/org" "$HOME/org"
 [ -e "$HOME/cs" ] || \

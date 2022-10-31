@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Downloads github.com/raindev/env and launches setup
 set -euo pipefail
 
