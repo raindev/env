@@ -19,6 +19,13 @@ update_repo () {
 	fi
 }
 
+ensure_nix () {
+	if ! command -v nix > /dev/null; then
+		echo '>installing Nix'
+		sh <(curl -L https://nixos.org/nix/install) --daemon
+	fi
+}
+
 pushd "$HOME/code/env/" > /dev/null
 if update_repo; then
 	echo -e 'Restarting updated script\n'
@@ -42,6 +49,17 @@ if [[ "$OSTYPE" == linux* ]]; then
 		echo '>upgrading DNF packages'
 		sudo dnf upgrade
 	fi
+	ensure_nix
+	if [ -e /etc/NIXOS ]; then
+		nix_apply='sudo nixos-rebuild switch --flake .'
+    else
+		if ! command -v home-manager > /dev/null ; then
+			# TODO install home-manager
+			true
+		fi
+		# TODO verify
+		nix_apply='home-manager switch --flake .'
+	fi
 elif [[ "$OSTYPE" == darwin* ]]; then
 	echo ' Thinking differently'
 
@@ -53,15 +71,31 @@ elif [[ "$OSTYPE" == darwin* ]]; then
 		bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 		eval "$(/opt/homebrew/bin/brew shellenv)"
 	fi
-
 	echo '>upgrading packages'
 	arch -arm64 brew upgrade
 	echo '>installing packages'
 	arch -arm64 brew bundle --no-lock --file=~/code/env/mac/Brewfile
+	ensure_nix
+	if ! command -v darwin-rebuild > /dev/null ; then
+		nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
+		./result/bin/darwin-installer
+	fi
+	nix_apply='darwin-rebuild switch --flake .'
 else
 	echo 'Unrecognized or unsupported system'
 	exit 1
 fi
+
+echo '>setting up nix-config'
+if [ ! -e "$HOME/code/nix-config" ]; then
+	git clone git@github.com:raindev/nix-config \
+		"$HOME/code/nix-config"
+else
+	(cd "$HOME/code/nix-config" && (update_repo || true))
+fi
+pushd "$HOME/code/nix-config" > /dev/null
+$nix_apply
+popd > /dev/null
 
 if command -v rustup > /dev/null ; then
 	echo '>upgrading Rust'
