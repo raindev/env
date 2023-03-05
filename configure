@@ -37,8 +37,6 @@ fi
 
 if [[ "$OSTYPE" == linux* ]]; then
 	echo 'Configuring Linux'
-	copy='xclip -sel clip'
-	open=xdg-open
 
 	if command -v dnf > /dev/null ; then
 		echo '>upgrading DNF packages'
@@ -46,9 +44,6 @@ if [[ "$OSTYPE" == linux* ]]; then
 	fi
 elif [[ "$OSTYPE" == darwin* ]]; then
 	echo ' Thinking differently'
-
-	copy=pbcopy
-	open=open
 
 	echo -e "\n>installing updates"
 	sudo softwareupdate --install --recommended
