@@ -33,22 +33,9 @@ if update_repo; then
 fi
 popd > /dev/null
 
-if [[ $(hostname) == 'void' ]]; then
-	echo 'Welcome to the void!'
-
-	echo '>syncing the repositories and upgrading the system'
-	xbps-install --sync --update
-	echo '>installing packages'
-	xargs < void-linux/packages xbps-install --yes
-fi
-
 if [[ "$OSTYPE" == linux* ]]; then
 	echo 'Configuring Linux'
 
-	if command -v dnf > /dev/null ; then
-		echo '>upgrading DNF packages'
-		sudo dnf upgrade
-	fi
 	ensure_nix
 	if [ -e /etc/NIXOS ]; then
 		nixos_desktop_hosts=(xps13 black)
