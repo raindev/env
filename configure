@@ -51,12 +51,36 @@ if [[ "$OSTYPE" == linux* ]]; then
 	fi
 	ensure_nix
 	if [ -e /etc/NIXOS ]; then
+		nixos_desktop_hosts=(xps13 black)
+		nixos_server_hosts=(pi4 netcup)
+		if [[ ${nixos_desktop_hosts[*]} =~ $(hostname) ]]; then
+			flake_lock_args=(
+				--update-input nixpkgs
+				--update-input nixos-hardware
+				--update-input home-manager
+				--commit-lock-file --commit-lockfile-summary
+				'Update nixpkgs, nixos-hardware, home-manager')
+		elif [[ ${nixos_server_hosts[*]} =~ $(hostname) ]]; then
+			flake_lock_args=(
+				--update-input nixpkgs-small
+				--update-input home-manager
+				--commit-lock-file --commit-lockfile-summary
+				'Update nixpkgs-small, home-manager')
+		else
+			echo 'Unrecognized NixOS host'
+			exit 1
+		fi
 		nix_apply='sudo nixos-rebuild switch --flake .'
     else
 		if ! command -v home-manager > /dev/null ; then
 			# TODO install home-manager
 			true
 		fi
+		flake_lock_args=(
+			--update-input nixpkgs
+			--update-input home-manager
+			--commit-lock-file --commit-lockfile-summary
+			'Update nixpkgs, home-manager')
 		# TODO verify
 		nix_apply='home-manager switch --flake .'
 	fi
@@ -80,6 +104,12 @@ elif [[ "$OSTYPE" == darwin* ]]; then
 		nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer
 		./result/bin/darwin-installer
 	fi
+	flake_lock_args=(
+		--update-input darwin
+		--update-input nixpkgs
+		--update-input home-manager
+		--commit-lock-file --commit-lockfile-summary
+		'Update darwin, nixpkgs, home-manager')
 	nix_apply='darwin-rebuild switch --flake .'
 else
 	echo 'Unrecognized or unsupported system'
@@ -94,6 +124,7 @@ else
 	(cd "$HOME/code/nix-config" && (update_repo || true))
 fi
 pushd "$HOME/code/nix-config" > /dev/null
+nix flake lock "${flake_lock_args[@]}"
 $nix_apply
 popd > /dev/null
 
